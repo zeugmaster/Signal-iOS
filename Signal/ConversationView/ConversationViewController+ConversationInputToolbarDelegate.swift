@@ -498,23 +498,11 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
 
         dismissKeyBoard()
 
-        if SUIEnvironment.shared.paymentsRef.isKillSwitchActive {
-            OWSActionSheets.showErrorAlert(message: OWSLocalizedString("SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENTS_KILL_SWITCH",
-                                                                      comment: "Error message indicating that payments cannot be sent because the feature is not currently available."))
-            return
-        }
-
-        if SSKEnvironment.shared.paymentsHelperRef.isPaymentsVersionOutdated {
-            OWSActionSheets.showPaymentsOutdatedClientSheet(title: .cantSendPayment)
-            return
-        }
-
-        SendPaymentViewController.presentFromConversationView(
-            self,
+        // Present simple Cashu send UI
+        SendCashuViewController.present(
+            from: self,
             delegate: self,
-            recipientAddress: contactThread.contactAddress,
-            initialPaymentAmount: nil,
-            isOutgoingTransfer: false
+            recipientAddress: contactThread.contactAddress
         )
     }
 

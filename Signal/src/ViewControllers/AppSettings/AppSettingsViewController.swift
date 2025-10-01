@@ -277,78 +277,56 @@ class AppSettingsViewController: OWSTableViewController2 {
         ))
         contents.add(section2)
 
-        if SUIEnvironment.shared.paymentsRef.shouldShowPaymentsUI {
-            let paymentsSection = OWSTableSection()
-            paymentsSection.add(.init(
-                customCellBlock: {
-                    let cell = OWSTableItem.newCell()
-                    cell.preservesSuperviewLayoutMargins = true
-                    cell.contentView.preservesSuperviewLayoutMargins = true
+        // Always show Cashu Wallet - no activation required
+        let cashuSection = OWSTableSection()
+        cashuSection.add(.init(
+            customCellBlock: {
+                let cell = OWSTableItem.newCell()
+                cell.preservesSuperviewLayoutMargins = true
+                cell.contentView.preservesSuperviewLayoutMargins = true
 
-                    var subviews = [UIView]()
+                var subviews = [UIView]()
 
-                    let iconView = OWSTableItem.imageView(forIcon: .settingsPayments,
-                                                          tintColor: nil,
-                                                          iconSize: OWSTableItem.iconSize)
-                    iconView.setCompressionResistanceHorizontalHigh()
-                    subviews.append(iconView)
-                    subviews.append(UIView.spacer(withWidth: OWSTableItem.iconSpacing))
+                let iconView = OWSTableItem.imageView(forIcon: .settingsPayments,
+                                                      tintColor: nil,
+                                                      iconSize: OWSTableItem.iconSize)
+                iconView.setCompressionResistanceHorizontalHigh()
+                subviews.append(iconView)
+                subviews.append(UIView.spacer(withWidth: OWSTableItem.iconSpacing))
 
-                    let nameLabel = UILabel()
-                    nameLabel.text = OWSLocalizedString("SETTINGS_PAYMENTS_TITLE",
-                                                       comment: "Label for the 'payments' section of the app settings.")
-                    nameLabel.textColor = Theme.primaryTextColor
-                    nameLabel.font = OWSTableItem.primaryLabelFont
-                    nameLabel.adjustsFontForContentSizeCategory = true
-                    nameLabel.numberOfLines = 0
-                    nameLabel.lineBreakMode = .byWordWrapping
-                    nameLabel.setContentHuggingLow()
-                    nameLabel.setCompressionResistanceHigh()
-                    subviews.append(nameLabel)
+                let nameLabel = UILabel()
+                nameLabel.text = OWSLocalizedString("SETTINGS_PAYMENTS_TITLE",
+                                                   comment: "Label for the 'payments' section of the app settings.")
+                nameLabel.textColor = Theme.primaryTextColor
+                nameLabel.font = OWSTableItem.primaryLabelFont
+                nameLabel.adjustsFontForContentSizeCategory = true
+                nameLabel.numberOfLines = 0
+                nameLabel.lineBreakMode = .byWordWrapping
+                nameLabel.setContentHuggingLow()
+                nameLabel.setCompressionResistanceHigh()
+                subviews.append(nameLabel)
 
-                    subviews.append(UIView.hStretchingSpacer())
+                subviews.append(UIView.hStretchingSpacer())
 
-                    let unreadPaymentsCount = SSKEnvironment.shared.databaseStorageRef.read { transaction in
-                        PaymentFinder.unreadCount(transaction: transaction)
-                    }
-                    if unreadPaymentsCount > 0 {
-                        let unreadLabel = UILabel()
-                        unreadLabel.text = OWSFormat.formatUInt(min(9, unreadPaymentsCount))
-                        unreadLabel.font = .dynamicTypeSubheadlineClamped
-                        unreadLabel.textColor = .ows_white
+                let contentRow = UIStackView(arrangedSubviews: subviews)
+                contentRow.alignment = .center
+                cell.contentView.addSubview(contentRow)
 
-                        let unreadBadge = OWSLayerView.circleView()
-                        unreadBadge.backgroundColor = .ows_accentBlue
-                        unreadBadge.addSubview(unreadLabel)
-                        unreadLabel.autoCenterInSuperview()
-                        unreadLabel.autoPinEdge(toSuperviewEdge: .top, withInset: 3)
-                        unreadLabel.autoPinEdge(toSuperviewEdge: .bottom, withInset: 3)
-                        unreadBadge.autoPinToSquareAspectRatio()
-                        unreadBadge.setContentHuggingHorizontalHigh()
-                        unreadBadge.setCompressionResistanceHorizontalHigh()
-                        subviews.append(unreadBadge)
-                    }
+                contentRow.setContentHuggingHigh()
+                contentRow.autoPinEdgesToSuperviewMargins()
+                contentRow.autoSetDimension(.height, toSize: OWSTableItem.iconSize, relation: .greaterThanOrEqual)
 
-                    let contentRow = UIStackView(arrangedSubviews: subviews)
-                    contentRow.alignment = .center
-                    cell.contentView.addSubview(contentRow)
+                cell.accessibilityIdentifier = UIView.accessibilityIdentifier(in: self, name: "cashu_wallet")
+                cell.accessoryType = .disclosureIndicator
 
-                    contentRow.setContentHuggingHigh()
-                    contentRow.autoPinEdgesToSuperviewMargins()
-                    contentRow.autoSetDimension(.height, toSize: OWSTableItem.iconSize, relation: .greaterThanOrEqual)
-
-                    cell.accessibilityIdentifier = UIView.accessibilityIdentifier(in: self, name: "payments")
-                    cell.accessoryType = .disclosureIndicator
-
-                    return cell
-                },
-                actionBlock: { [weak self, appReadiness] in
-                    let vc = PaymentsSettingsViewController(mode: .inAppSettings, appReadiness: appReadiness)
-                    self?.navigationController?.pushViewController(vc, animated: true)
-                }
-            ))
-            contents.add(paymentsSection)
-        }
+                return cell
+            },
+            actionBlock: { [weak self] in
+                let vc = CashuWalletViewController(mode: .inAppSettings)
+                self?.navigationController?.pushViewController(vc, animated: true)
+            }
+        ))
+        contents.add(cashuSection)
 
         let section3 = OWSTableSection()
         section3.add(.disclosureItem(

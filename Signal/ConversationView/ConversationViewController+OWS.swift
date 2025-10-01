@@ -509,3 +509,15 @@ extension ConversationViewController: SendPaymentViewDelegate {
         }
     }
 }
+
+// MARK: - SendCashuViewDelegate
+
+extension ConversationViewController: SendCashuViewDelegate {
+    public func didSendCashu(success: Bool, recipientAddress: SignalServiceAddress) {
+        // Payment sent as message - nothing more to do
+        if success {
+            // Optionally show a success toast
+            // presentToast(text: "Payment sent")
+        }
+    }
+}
