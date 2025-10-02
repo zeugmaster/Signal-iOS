@@ -30,27 +30,18 @@ class CashuIntegration: NSObject {
     private var wallet: Wallet?
     private var database: WalletSqliteDatabase?
     private let defaultMintUrl = "https://testnut.cashu.space"
-    private let defaultMnemonic = generateMnemonic() // Generate a new mnemonic on first use
     
     // MARK: - KeyValueStore for persistence
     
     private static let keyValueStore = KeyValueStore(collection: "CashuWallet")
     private static let walletMnemonicKey = "walletMnemonic"
     private static let mintUrlKey = "mintUrl"
-    private static let databasePathKey = "databasePath"
     
     private override init() {
         super.init()
         Task {
             await initializeWallet()
         }
-    }
-    
-    private static func generateMnemonic() -> String {
-        // Generate a 12-word mnemonic for the wallet
-        // In production, this should use a secure random generator
-        // For now, using a placeholder
-        return "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
     }
     
     // MARK: - Public Methods
@@ -118,11 +109,28 @@ class CashuIntegration: NSObject {
         }
     }
     
+    /// Get wallet mnemonic (for backup/display)
+    func getWalletMnemonic() async -> String? {
+        return SSKEnvironment.shared.databaseStorageRef.read { transaction in
+            Self.keyValueStore.getString(Self.walletMnemonicKey, transaction: transaction)
+        }
+    }
+    
     /// Set mint URL
     func setMintUrl(_ url: String) async {
+        // Clear current wallet first
+        wallet = nil
+        database = nil
+        
+        // Update mint URL
         await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
             Self.keyValueStore.setString(url, key: Self.mintUrlKey, transaction: transaction)
         }
+        
+        // Delete old database to ensure clean state
+        let dbPath = getDatabasePath()
+        try? FileManager.default.removeItem(atPath: dbPath)
+        
         // Reinitialize wallet with new mint
         await initializeWallet()
     }
@@ -137,12 +145,19 @@ class CashuIntegration: NSObject {
             return existing
         }
         
-        // Generate and save new mnemonic
-        let newMnemonic = Self.generateMnemonic()
-        await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
-            Self.keyValueStore.setString(newMnemonic, key: Self.walletMnemonicKey, transaction: transaction)
+        // Generate cryptographically secure random mnemonic using CashuDevKit
+        do {
+            let newMnemonic = try CashuDevKit.generateMnemonic()
+            await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in
+                Self.keyValueStore.setString(newMnemonic, key: Self.walletMnemonicKey, transaction: transaction)
+            }
+            Logger.info("Generated new secure mnemonic")
+            return newMnemonic
+        } catch {
+            Logger.error("Failed to generate mnemonic: \(error)")
+            // Fallback - this should never happen
+            fatalError("Failed to generate secure mnemonic")
         }
-        return newMnemonic
     }
     
     private func getDatabasePath() -> String {

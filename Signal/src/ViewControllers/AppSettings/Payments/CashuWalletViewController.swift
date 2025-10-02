@@ -4,24 +4,13 @@
 //
 
 import UIKit
+import Lottie
 import SignalServiceKit
 import SignalUI
 
-@objc
 class CashuWalletViewController: OWSTableViewController2 {
     
     private let mode: PaymentsSettingsMode
-    
-    // MARK: - UI Components
-    
-    private let balanceCard = UIView()
-    private let balanceLabel = UILabel()
-    private let balanceAmountLabel = UILabel()
-    
-    private let sendButton = UIButton()
-    private let receiveButton = UIButton()
-    private let mintButton = UIButton()
-    private let settingsButton = UIButton()
     
     private var balance: UInt64 = 0
     private var mintUrl: String {
@@ -49,8 +38,7 @@ class CashuWalletViewController: OWSTableViewController2 {
             navigationItem.leftBarButtonItem = UIBarButtonItem(
                 barButtonSystemItem: .done,
                 target: self,
-                action: #selector(didTapDismiss),
-                accessibilityIdentifier: "dismiss"
+                action: #selector(didTapDismiss)
             )
         }
         
@@ -61,14 +49,14 @@ class CashuWalletViewController: OWSTableViewController2 {
             action: #selector(didTapSettings)
         )
         
-        updateTableContents()
         loadWalletBalance()
+        updateTableContents()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateTableContents()
         loadWalletBalance()
+        updateTableContents()
     }
     
     // MARK: - Table Contents
@@ -76,140 +64,199 @@ class CashuWalletViewController: OWSTableViewController2 {
     private func updateTableContents() {
         let contents = OWSTableContents()
         
-        // Balance Section
-        let balanceSection = OWSTableSection()
-        balanceSection.headerTitle = OWSLocalizedString(
-            "CASHU_WALLET_BALANCE_SECTION",
-            value: "Balance",
-            comment: "Header for balance section"
-        )
-        
-        balanceSection.add(OWSTableItem(customCellBlock: { [weak self] in
-            guard let self = self else { return UITableViewCell() }
-            
-            let cell = OWSTableItem.newCell()
-            cell.selectionStyle = .none
-            
-            let cardView = UIView()
-            cardView.backgroundColor = Theme.isDarkThemeEnabled ? .ows_gray80 : .ows_gray05
-            cardView.layer.cornerRadius = 12
-            
-            let stackView = UIStackView()
-            stackView.axis = .vertical
-            stackView.spacing = 8
-            stackView.alignment = .center
-            
-            let titleLabel = UILabel()
-            titleLabel.text = OWSLocalizedString(
-                "CASHU_WALLET_YOUR_BALANCE",
-                value: "Your balance",
-                comment: "Label showing user's balance"
-            )
-            titleLabel.font = .dynamicTypeBody
-            titleLabel.textColor = Theme.secondaryTextAndIconColor
-            
-            let amountLabel = UILabel()
-            amountLabel.text = self.formatBalance(self.balance)
-            amountLabel.font = .dynamicTypeTitle1.withSize(36)
-            amountLabel.textColor = Theme.primaryTextColor
-            
-            let satsLabel = UILabel()
-            satsLabel.text = "sats"
-            satsLabel.font = .dynamicTypeBody
-            satsLabel.textColor = Theme.secondaryTextAndIconColor
-            
-            stackView.addArrangedSubview(titleLabel)
-            stackView.addArrangedSubview(amountLabel)
-            stackView.addArrangedSubview(satsLabel)
-            
-            cardView.addSubview(stackView)
-            stackView.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets(top: 24, left: 16, bottom: 24, right: 16))
-            
-            cell.contentView.addSubview(cardView)
-            cardView.autoPinEdgesToSuperviewMargins()
-            
-            return cell
-        }))
-        
-        contents.add(balanceSection)
-        
-        // Actions Section
-        let actionsSection = OWSTableSection()
-        actionsSection.headerTitle = OWSLocalizedString(
-            "CASHU_WALLET_ACTIONS_SECTION",
-            value: "Actions",
-            comment: "Header for actions section"
-        )
-        
-        // Mint tokens (add funds)
-        actionsSection.add(OWSTableItem.disclosureItem(
-            withText: OWSLocalizedString(
-                "CASHU_WALLET_ADD_FUNDS",
-                value: "Add Funds",
-                comment: "Button to add funds via Lightning"
-            ),
-            actionBlock: { [weak self] in
-                self?.didTapAddFunds()
-            }
+        // Header with balance and action buttons
+        let headerSection = OWSTableSection()
+        headerSection.hasBackground = false
+        headerSection.shouldDisableCellSelection = true
+        headerSection.add(OWSTableItem(
+            customCellBlock: { [weak self] in
+                let cell = OWSTableItem.newCell()
+                self?.configureHeaderCell(cell: cell)
+                return cell
+            },
+            actionBlock: nil
         ))
+        contents.add(headerSection)
         
-        contents.add(actionsSection)
-        
-        // Transaction History Section
-        let historySection = OWSTableSection()
-        historySection.headerTitle = OWSLocalizedString(
-            "CASHU_WALLET_HISTORY_SECTION",
-            value: "Recent Transactions",
-            comment: "Header for transaction history section"
-        )
-        
-        // Placeholder for now
-        // Commenting out transaction history for now - will be added later
-        // historySection.add(OWSTableItem(customCellBlock: {
-        //     let cell = OWSTableItem.newCell()
-        //     cell.selectionStyle = .none
-        //     
-        //     let label = UILabel()
-        //     label.text = OWSLocalizedString(
-        //         "CASHU_WALLET_NO_TRANSACTIONS",
-        //         value: "No transactions yet",
-        //         comment: "Placeholder when there are no transactions"
-        //     )
-        //     label.font = .dynamicTypeBody
-        //     label.textColor = Theme.secondaryTextAndIconColor
-        //     label.textAlignment = .center
-        //     
-        //     cell.contentView.addSubview(label)
-        //     label.autoPinEdgesToSuperviewMargins()
-        //     label.autoSetDimension(.height, toSize: 60, relation: .greaterThanOrEqual)
-        //     
-        //     return cell
-        // }))
-        // 
-        // contents.add(historySection)
-        
-        // Info Section
-        let infoSection = OWSTableSection()
-        infoSection.footerTitle = OWSLocalizedString(
-            "CASHU_WALLET_INFO_FOOTER",
-            value: "Cashu is a Chaumian ecash system for Bitcoin. Tokens are bearer instruments - keep them safe!",
-            comment: "Footer text explaining Cashu"
-        )
-        
-        infoSection.add(OWSTableItem.disclosureItem(
-            withText: OWSLocalizedString(
-                "CASHU_WALLET_MINT_INFO",
-                value: "Current mint: \(mintUrl)",
-                comment: "Shows current mint URL"
-            ),
-            actionBlock: { [weak self] in
-                self?.didTapMintInfo()
-            }
-        ))
-        
-        contents.add(infoSection)
+        // Recovery phrase help card
+        contents.add(buildRecoveryPhraseCard())
         
         self.contents = contents
+    }
+    
+    private func buildRecoveryPhraseCard() -> OWSTableSection {
+        let section = OWSTableSection()
+        
+        section.add(OWSTableItem(
+            customCellBlock: {
+                let titleLabel = UILabel()
+                titleLabel.text = OWSLocalizedString(
+                    "CASHU_RECOVERY_PHRASE_CARD_TITLE",
+                    value: "Back up your recovery phrase",
+                    comment: "Title for recovery phrase card"
+                )
+                titleLabel.textColor = Theme.primaryTextColor
+                titleLabel.font = UIFont.dynamicTypeBodyClamped.semibold()
+                
+                let bodyLabel = UILabel()
+                bodyLabel.text = OWSLocalizedString(
+                    "CASHU_RECOVERY_PHRASE_CARD_BODY",
+                    value: "Write down your 12-word recovery phrase to restore your wallet if you lose access to this device.",
+                    comment: "Description for recovery phrase card"
+                )
+                bodyLabel.textColor = Theme.secondaryTextAndIconColor
+                bodyLabel.font = UIFont.dynamicTypeSubheadlineClamped
+                bodyLabel.numberOfLines = 0
+                bodyLabel.lineBreakMode = .byWordWrapping
+                
+                let buttonLabel = UILabel()
+                buttonLabel.text = OWSLocalizedString(
+                    "CASHU_RECOVERY_PHRASE_CARD_BUTTON",
+                    value: "View recovery phrase",
+                    comment: "Button in recovery phrase card"
+                )
+                buttonLabel.textColor = Theme.accentBlueColor
+                buttonLabel.font = UIFont.dynamicTypeSubheadlineClamped
+                
+                let iconName = Theme.isDarkThemeEnabled ? "restore-dark" : "restore"
+                let animationView = LottieAnimationView(name: iconName)
+                animationView.contentMode = .scaleAspectFit
+                animationView.autoSetDimensions(to: .square(80))
+                
+                let vStack = UIStackView(arrangedSubviews: [
+                    titleLabel,
+                    bodyLabel,
+                    buttonLabel
+                ])
+                vStack.axis = .vertical
+                vStack.alignment = .leading
+                vStack.spacing = 8
+                
+                let hStack = UIStackView(arrangedSubviews: [
+                    vStack,
+                    animationView
+                ])
+                hStack.axis = .horizontal
+                hStack.alignment = .center
+                hStack.spacing = 16
+                
+                let cell = OWSTableItem.newCell()
+                cell.contentView.addSubview(hStack)
+                hStack.autoPinEdgesToSuperviewMargins()
+                
+                return cell
+            },
+            actionBlock: { [weak self] in
+                self?.showRecoveryPhrase()
+            }
+        ))
+        
+        return section
+    }
+    
+    private func configureHeaderCell(cell: UITableViewCell) {
+        // Balance label
+        let balanceLabel = UILabel()
+        balanceLabel.font = UIFont.regularFont(ofSize: 54)
+        balanceLabel.textAlignment = .center
+        balanceLabel.adjustsFontSizeToFitWidth = true
+        balanceLabel.text = formatBalance(balance) + " sats"
+        balanceLabel.textColor = Theme.primaryTextColor
+        
+        let balanceStack = UIStackView(arrangedSubviews: [balanceLabel])
+        balanceStack.axis = .vertical
+        balanceStack.alignment = .fill
+        
+        // Mint info label
+        let mintLabel = UILabel()
+        mintLabel.font = .dynamicTypeSubheadlineClamped
+        mintLabel.textColor = Theme.secondaryTextAndIconColor
+        mintLabel.textAlignment = .center
+        mintLabel.numberOfLines = 0
+        
+        let mintNameLabel = UILabel()
+        mintNameLabel.text = extractMintName(from: mintUrl)
+        mintNameLabel.font = .dynamicTypeSubheadlineClamped
+        mintNameLabel.textColor = Theme.secondaryTextAndIconColor
+        mintNameLabel.textAlignment = .center
+        
+        let mintStack = UIStackView(arrangedSubviews: [mintNameLabel])
+        mintStack.axis = .vertical
+        mintStack.alignment = .center
+        mintStack.isUserInteractionEnabled = true
+        mintStack.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapMintInfo)))
+        
+        // Add funds button
+        let addFundsButton = buildHeaderButton(
+            title: OWSLocalizedString(
+                "CASHU_ADD_FUNDS",
+                value: "Add funds",
+                comment: "Button to add funds"
+            ),
+            iconName: "plus",
+            selector: #selector(didTapAddFunds)
+        )
+        
+        let buttonStack = UIStackView(arrangedSubviews: [addFundsButton])
+        buttonStack.axis = .horizontal
+        buttonStack.spacing = 8
+        buttonStack.alignment = .fill
+        buttonStack.distribution = .fillEqually
+        
+        let headerStack = OWSStackView(
+            name: "headerStack",
+            arrangedSubviews: [
+                balanceStack,
+                UIView.spacer(withHeight: 8),
+                mintStack,
+                UIView.spacer(withHeight: 44),
+                buttonStack
+            ]
+        )
+        headerStack.axis = .vertical
+        headerStack.alignment = .fill
+        headerStack.layoutMargins = .init(top: 30, left: 0, bottom: 8, right: 0)
+        headerStack.isLayoutMarginsRelativeArrangement = true
+        cell.contentView.addSubview(headerStack)
+        headerStack.autoPinEdgesToSuperviewEdges()
+        
+        headerStack.addTapGesture { [weak self] in
+            self?.loadWalletBalance()
+        }
+    }
+    
+    private func buildHeaderButton(title: String, iconName: String, selector: Selector) -> UIView {
+        let iconView = UIImageView.withTemplateImageName(
+            iconName,
+            tintColor: Theme.primaryIconColor
+        )
+        iconView.autoSetDimensions(to: .square(24))
+        
+        let label = UILabel()
+        label.text = title
+        label.textColor = Theme.primaryTextColor
+        label.font = .dynamicTypeCaption2Clamped
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        
+        let stack = UIStackView(arrangedSubviews: [iconView, label])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 5
+        stack.layoutMargins = UIEdgeInsets(top: 12, leading: 20, bottom: 6, trailing: 20)
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.isUserInteractionEnabled = true
+        stack.addGestureRecognizer(UITapGestureRecognizer(target: self, action: selector))
+        
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = OWSTableViewController2.cellBackgroundColor(isUsingPresentedStyle: true)
+        backgroundView.layer.cornerRadius = 10
+        stack.addSubview(backgroundView)
+        stack.sendSubviewToBack(backgroundView)
+        backgroundView.autoPinEdgesToSuperviewEdges()
+        
+        return stack
     }
     
     // MARK: - Actions
@@ -225,42 +272,31 @@ class CashuWalletViewController: OWSTableViewController2 {
         
         actionSheet.addAction(ActionSheetAction(
             title: OWSLocalizedString(
-                "CASHU_WALLET_BACKUP",
-                value: "Backup Wallet",
-                comment: "Option to backup Cashu wallet"
+                "CASHU_VIEW_RECOVERY_PHRASE",
+                value: "View recovery phrase",
+                comment: "Option to view recovery phrase"
             ),
             style: .default
         ) { [weak self] _ in
-            self?.showBackupWallet()
+            self?.showRecoveryPhrase()
         })
         
         actionSheet.addAction(ActionSheetAction(
             title: OWSLocalizedString(
-                "CASHU_WALLET_RESTORE",
-                value: "Restore Wallet",
-                comment: "Option to restore Cashu wallet"
+                "CASHU_MANAGE_MINTS",
+                value: "Manage mints",
+                comment: "Option to manage mints"
             ),
             style: .default
         ) { [weak self] _ in
-            self?.showRestoreWallet()
+            self?.showManageMints()
         })
         
         actionSheet.addAction(ActionSheetAction(
             title: OWSLocalizedString(
-                "CASHU_WALLET_CHANGE_MINT",
-                value: "Change Mint",
-                comment: "Option to change Cashu mint"
-            ),
-            style: .default
-        ) { [weak self] _ in
-            self?.showChangeMint()
-        })
-        
-        actionSheet.addAction(ActionSheetAction(
-            title: OWSLocalizedString(
-                "CASHU_WALLET_CLEAR",
-                value: "Clear Wallet",
-                comment: "Option to clear Cashu wallet"
+                "CASHU_CLEAR_WALLET",
+                value: "Clear wallet",
+                comment: "Option to clear wallet"
             ),
             style: .destructive
         ) { [weak self] _ in
@@ -272,6 +308,44 @@ class CashuWalletViewController: OWSTableViewController2 {
         presentActionSheet(actionSheet)
     }
     
+    private func showRecoveryPhrase() {
+        Task {
+            guard let mnemonic = await CashuIntegration.shared.getWalletMnemonic() else {
+                await MainActor.run {
+                    OWSActionSheets.showErrorAlert(message: "No recovery phrase found")
+                }
+                return
+            }
+            
+            await MainActor.run {
+                let recoveryVC = ViewCashuRecoveryPhraseViewController(mnemonic: mnemonic)
+                let navController = OWSNavigationController(rootViewController: recoveryVC)
+                self.present(navController, animated: true)
+            }
+        }
+    }
+    
+    @objc
+    private func didTapMintInfo() {
+        let alert = ActionSheetController(
+            title: OWSLocalizedString(
+                "CASHU_MINT_INFO_TITLE",
+                value: "Mint information",
+                comment: "Title for mint info dialog"
+            ),
+            message: String(format: OWSLocalizedString(
+                "CASHU_MINT_INFO_MESSAGE",
+                value: "Current mint: %@\n\nMints are trusted third parties that issue ecash tokens.",
+                comment: "Message showing mint info"
+            ), mintUrl)
+        )
+        
+        alert.addAction(OWSActionSheets.okayAction)
+        
+        presentActionSheet(alert)
+    }
+    
+    @objc
     private func didTapAddFunds() {
         let alert = UIAlertController(
             title: OWSLocalizedString(
@@ -302,7 +376,7 @@ class CashuWalletViewController: OWSTableViewController2 {
                 OWSActionSheets.showErrorAlert(message: "Please enter a valid amount")
                 return
             }
-            self?.startMintingProcess(amount: amount)
+            self?.createInvoiceAndShowQR(amount: amount)
         })
         
         alert.addAction(UIAlertAction(
@@ -313,212 +387,16 @@ class CashuWalletViewController: OWSTableViewController2 {
         present(alert, animated: true)
     }
     
-    private func didTapMintInfo() {
-        let alert = ActionSheetController(
-            title: OWSLocalizedString(
-                "CASHU_MINT_INFO_TITLE",
-                value: "Mint Information",
-                comment: "Title for mint info dialog"
-            ),
-            message: String(format: OWSLocalizedString(
-                "CASHU_MINT_INFO_MESSAGE",
-                value: "Current mint: %@\n\nMints are trusted third parties that issue ecash tokens.",
-                comment: "Message showing mint info"
-            ), mintUrl)
-        )
-        
-        alert.addAction(OWSActionSheets.okayAction)
-        
-        presentActionSheet(alert)
-    }
-    
-    // MARK: - Wallet Operations
-    
-    private func loadWalletBalance() {
-        Task {
-            do {
-                let balance = try await CashuIntegration.shared.getBalance()
-                await MainActor.run {
-                    self.balance = balance
-                    self.updateTableContents()
-                }
-            } catch {
-                Logger.error("Failed to load wallet balance: \(error)")
-                await MainActor.run {
-                    self.balance = 0
-                    self.updateTableContents()
-                }
-            }
-        }
-    }
-    
-    // MARK: - Minting Process
-    
-    private func startMintingProcess(amount: UInt64) {
-        Task {
-            do {
-                // Request a mint quote (Lightning invoice)
-                let quote = try await CashuIntegration.shared.createMintQuote(amount: amount)
-                
-                await MainActor.run {
-                    self.showLightningInvoice(quote: quote, amount: amount)
-                }
-            } catch {
-                await MainActor.run {
-                    OWSActionSheets.showErrorAlert(message: "Failed to create invoice: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-    
-    private func showLightningInvoice(quote: CashuIntegration.MintQuoteInfo, amount: UInt64) {
-        // Truncate invoice for display
-        let invoicePreview = String(quote.invoice.prefix(60)) + "..."
-        
-        let alert = ActionSheetController(
-            title: OWSLocalizedString(
-                "CASHU_LIGHTNING_INVOICE_TITLE",
-                value: "Lightning invoice",
-                comment: "Title for Lightning invoice display"
-            ),
-            message: String(format: OWSLocalizedString(
-                "CASHU_LIGHTNING_INVOICE_MESSAGE",
-                value: "Pay this invoice with your Lightning wallet to add %d sats:\n\n%@",
-                comment: "Message explaining how to pay the invoice"
-            ), amount, invoicePreview)
-        )
-        
-        // Add copy button
-        alert.addAction(ActionSheetAction(
-            title: OWSLocalizedString(
-                "CASHU_COPY_INVOICE",
-                value: "Copy invoice",
-                comment: "Button to copy Lightning invoice"
-            ),
-            style: .default
-        ) { [weak self] _ in
-            UIPasteboard.general.string = quote.invoice
-            self?.showToast("Invoice copied to clipboard")
-            self?.showLightningInvoice(quote: quote, amount: amount)
-        })
-        
-        // Add check payment button
-        alert.addAction(ActionSheetAction(
-            title: OWSLocalizedString(
-                "CASHU_CHECK_PAYMENT",
-                value: "Check payment",
-                comment: "Button to check if invoice was paid"
-            ),
-            style: .default
-        ) { [weak self] _ in
-            self?.checkPaymentAndMint(quote: quote, amount: amount)
-        })
-        
-        alert.addAction(OWSActionSheets.cancelAction)
-        
-        presentActionSheet(alert)
-    }
-    
-    private func checkPaymentAndMint(quote: CashuIntegration.MintQuoteInfo, amount: UInt64) {
-        // Show loading
-        ModalActivityIndicatorViewController.present(
-            fromViewController: self,
-            canCancel: false
-        ) { [weak self] modal in
-            guard let self = self else { return }
-            
-            Task {
-                do {
-                    // Check quote status and mint if paid
-                    try await CashuIntegration.shared.mintTokens(quoteId: quote.quoteId)
-                    
-                    await MainActor.run {
-                        modal.dismiss {
-                            self.showToast("Funds added successfully!")
-                            self.loadWalletBalance()
-                        }
-                    }
-                } catch {
-                    await MainActor.run {
-                        modal.dismiss {
-                            let errorMessage = error.localizedDescription
-                            if errorMessage.contains("unpaid") || errorMessage.contains("pending") {
-                                OWSActionSheets.showErrorAlert(message: "Invoice not paid yet. Please pay the invoice and try again.")
-                                // Show the invoice again
-                                self.showLightningInvoice(quote: quote, amount: amount)
-                            } else {
-                                OWSActionSheets.showErrorAlert(message: "Failed to mint tokens: \(errorMessage)")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Settings Actions
-    
-    private func showBackupWallet() {
-        // TODO: Implement wallet backup
-        showToast("Backup feature coming soon!")
-    }
-    
-    private func showRestoreWallet() {
-        // TODO: Implement wallet restore
-        showToast("Restore feature coming soon!")
-    }
-    
-    private func showChangeMint() {
-        let alert = UIAlertController(
-            title: OWSLocalizedString(
-                "CASHU_CHANGE_MINT_TITLE",
-                value: "Change Mint",
-                comment: "Title for change mint dialog"
-            ),
-            message: OWSLocalizedString(
-                "CASHU_CHANGE_MINT_MESSAGE",
-                value: "Enter the URL of the new mint",
-                comment: "Message for change mint dialog"
-            ),
-            preferredStyle: .alert
-        )
-        
-        alert.addTextField { [weak self] textField in
-            textField.placeholder = "https://mint.example.com"
-            textField.text = self?.mintUrl
-        }
-        
-        alert.addAction(UIAlertAction(
-            title: CommonStrings.saveButton,
-            style: .default
-        ) { [weak self, weak alert] _ in
-            guard let newMintUrl = alert?.textFields?.first?.text,
-                  !newMintUrl.isEmpty else {
-                return
-            }
-            Task {
-                await CashuIntegration.shared.setMintUrl(newMintUrl)
-                await MainActor.run {
-                    self?.updateTableContents()
-                    self?.showToast("Mint updated")
-                    self?.loadWalletBalance()
-                }
-            }
-        })
-        
-        alert.addAction(UIAlertAction(
-            title: CommonStrings.cancelButton,
-            style: .cancel
-        ))
-        
-        present(alert, animated: true)
+    private func showManageMints() {
+        let manageMintsVC = ManageMintsViewController()
+        navigationController?.pushViewController(manageMintsVC, animated: true)
     }
     
     private func showClearWalletConfirmation() {
         let alert = ActionSheetController(
             title: OWSLocalizedString(
                 "CASHU_CLEAR_WALLET_TITLE",
-                value: "Clear Wallet?",
+                value: "Clear wallet?",
                 comment: "Title for clear wallet confirmation"
             ),
             message: OWSLocalizedString(
@@ -531,7 +409,7 @@ class CashuWalletViewController: OWSTableViewController2 {
         alert.addAction(ActionSheetAction(
             title: OWSLocalizedString(
                 "CASHU_CLEAR_WALLET_CONFIRM",
-                value: "Clear Wallet",
+                value: "Clear wallet",
                 comment: "Confirm clear wallet button"
             ),
             style: .destructive
@@ -550,7 +428,57 @@ class CashuWalletViewController: OWSTableViewController2 {
             await MainActor.run {
                 self.balance = 0
                 self.updateTableContents()
-                self.showToast("Wallet cleared")
+                self.presentToast(text: "Wallet cleared")
+            }
+        }
+    }
+    
+    // MARK: - Wallet Operations
+    
+    private func loadWalletBalance() {
+        Task {
+            do {
+                let balance = try await CashuIntegration.shared.getBalance()
+                await MainActor.run {
+                    self.balance = balance
+                    self.updateTableContents()
+                }
+            } catch {
+                await MainActor.run {
+                    self.balance = 0
+                    self.updateTableContents()
+                }
+            }
+        }
+    }
+    
+    // MARK: - Minting Process
+    
+    private func createInvoiceAndShowQR(amount: UInt64) {
+        ModalActivityIndicatorViewController.present(
+            fromViewController: self,
+            canCancel: false
+        ) { [weak self] modal in
+            guard let self = self else { return }
+            
+            Task {
+                do {
+                    // Request a mint quote (Lightning invoice)
+                    let quote = try await CashuIntegration.shared.createMintQuote(amount: amount)
+                    
+                    await MainActor.run {
+                        modal.dismiss {
+                            let addFundsVC = AddFundsViewController(amount: amount, quote: quote)
+                            self.navigationController?.pushViewController(addFundsVC, animated: true)
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        modal.dismiss {
+                            OWSActionSheets.showErrorAlert(message: "Failed to create invoice: \(error.localizedDescription)")
+                        }
+                    }
+                }
             }
         }
     }
@@ -564,7 +492,10 @@ class CashuWalletViewController: OWSTableViewController2 {
         return formatter.string(from: NSNumber(value: sats)) ?? "0"
     }
     
-    private func showToast(_ message: String) {
-        presentToast(text: message)
+    private func extractMintName(from url: String) -> String {
+        if let host = URL(string: url)?.host {
+            return host
+        }
+        return url
     }
 }
