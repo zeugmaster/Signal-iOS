@@ -4,7 +4,6 @@
 //
 
 import UIKit
-import Lottie
 import SignalServiceKit
 import SignalUI
 import CashuDevKit
@@ -96,65 +95,43 @@ class CashuWalletViewController: OWSTableViewController2 {
     
     private func buildRecoveryPhraseCard() -> OWSTableSection {
         let section = OWSTableSection()
+        // Build a custom header view with UILabel to bypass any system capitalization heuristics
+        let headerContainer = UIView()
+        headerContainer.backgroundColor = .clear
+
+        let headerLabel = UILabel()
+        headerLabel.translatesAutoresizingMaskIntoConstraints = false
+        headerLabel.text = OWSLocalizedString(
+            "CASHU_RECOVERY_PHRASE_SECTION_HEADER",
+            value: "Backup",
+            comment: "Header for recovery phrase section"
+        )
+        headerLabel.textColor = (Theme.isDarkThemeEnabled || self.forceDarkMode) ? UIColor.ows_gray05 : UIColor.ows_gray90
+        headerLabel.font = UIFont.dynamicTypeBodyClamped.semibold()
+        headerLabel.numberOfLines = 0
+
+        headerContainer.addSubview(headerLabel)
+        // Apply horizontal margins similar to other table sections
+        headerContainer.layoutMargins = UIEdgeInsets(
+            top: 0,
+            left: OWSTableViewController2.cellHInnerMargin * 0.5,
+            bottom: 0,
+            right: OWSTableViewController2.cellHInnerMargin * 0.5
+        )
+        NSLayoutConstraint.activate([
+            headerLabel.leadingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.leadingAnchor),
+            headerLabel.trailingAnchor.constraint(equalTo: headerContainer.layoutMarginsGuide.trailingAnchor),
+            headerLabel.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: (self.defaultSpacingBetweenSections ?? 0) + 12),
+            headerLabel.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: -10)
+        ])
+
+        section.customHeaderView = headerContainer
         
         section.add(OWSTableItem(
-            customCellBlock: {
-            let titleLabel = UILabel()
-            titleLabel.text = OWSLocalizedString(
-                    "CASHU_RECOVERY_PHRASE_CARD_TITLE",
-                    value: "Back up your recovery phrase",
-                    comment: "Title for recovery phrase card"
-                )
-                titleLabel.textColor = Theme.primaryTextColor
-                titleLabel.font = UIFont.dynamicTypeBodyClamped.semibold()
-                
-                let bodyLabel = UILabel()
-                bodyLabel.text = OWSLocalizedString(
-                    "CASHU_RECOVERY_PHRASE_CARD_BODY",
-                    value: "Write down your 12-word recovery phrase to restore your wallet if you lose access to this device.",
-                    comment: "Description for recovery phrase card"
-                )
-                bodyLabel.textColor = Theme.secondaryTextAndIconColor
-                bodyLabel.font = UIFont.dynamicTypeSubheadlineClamped
-                bodyLabel.numberOfLines = 0
-                bodyLabel.lineBreakMode = .byWordWrapping
-                
-                let buttonLabel = UILabel()
-                buttonLabel.text = OWSLocalizedString(
-                    "CASHU_RECOVERY_PHRASE_CARD_BUTTON",
-                    value: "View recovery phrase",
-                    comment: "Button in recovery phrase card"
-                )
-                buttonLabel.textColor = Theme.accentBlueColor
-                buttonLabel.font = UIFont.dynamicTypeSubheadlineClamped
-                
-                let iconName = Theme.isDarkThemeEnabled ? "restore-dark" : "restore"
-                let animationView = LottieAnimationView(name: iconName)
-                animationView.contentMode = .scaleAspectFit
-                animationView.autoSetDimensions(to: .square(80))
-                
-                let vStack = UIStackView(arrangedSubviews: [
-                    titleLabel,
-                    bodyLabel,
-                    buttonLabel
-                ])
-                vStack.axis = .vertical
-                vStack.alignment = .leading
-                vStack.spacing = 8
-                
-                let hStack = UIStackView(arrangedSubviews: [
-                    vStack,
-                    animationView
-                ])
-                hStack.axis = .horizontal
-                hStack.alignment = .center
-                hStack.spacing = 16
-                
+            customCellBlock: { [weak self] in
                 let cell = OWSTableItem.newCell()
-                cell.contentView.addSubview(hStack)
-                hStack.autoPinEdgesToSuperviewMargins()
-            
-            return cell
+                self?.configureRecoveryPhraseCell(cell: cell)
+                return cell
             },
             actionBlock: { [weak self] in
                 self?.showRecoveryPhrase()
@@ -162,6 +139,55 @@ class CashuWalletViewController: OWSTableViewController2 {
         ))
         
         return section
+    }
+    
+    private func configureRecoveryPhraseCell(cell: UITableViewCell) {
+        // Icon - using the recovery-phrase image that exists in Images.xcassets
+        let iconView = UIImageView(image: UIImage(named: "recovery-phrase"))
+        iconView.contentMode = .scaleAspectFit
+        iconView.autoSetDimensions(to: .square(24))
+        
+        // Title
+        let titleLabel = UILabel()
+        titleLabel.text = OWSLocalizedString(
+            "CASHU_RECOVERY_PHRASE_CELL_TITLE",
+            value: "Recovery phrase",
+            comment: "Title for recovery phrase cell"
+        )
+        titleLabel.font = UIFont.dynamicTypeBodyClamped
+        titleLabel.textColor = Theme.primaryTextColor
+        
+        // Subtitle
+        let subtitleLabel = UILabel()
+        subtitleLabel.text = OWSLocalizedString(
+            "CASHU_RECOVERY_PHRASE_CELL_SUBTITLE",
+            value: "Back up your 12-word phrase",
+            comment: "Subtitle for recovery phrase cell"
+        )
+        subtitleLabel.font = UIFont.dynamicTypeCaption1Clamped
+        subtitleLabel.textColor = Theme.secondaryTextAndIconColor
+        
+        // Left stack with title and subtitle
+        let leftStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        leftStack.axis = .vertical
+        leftStack.spacing = 2
+        leftStack.alignment = .leading
+        
+        // Use standard cell accessory instead of custom chevron
+        cell.accessoryType = .disclosureIndicator
+        
+        // Main horizontal stack
+        let mainStack = UIStackView(arrangedSubviews: [
+            iconView,
+            leftStack
+        ])
+        mainStack.axis = .horizontal
+        mainStack.spacing = 12
+        mainStack.alignment = .center
+        
+        cell.contentView.addSubview(mainStack)
+        mainStack.autoPinEdgesToSuperviewMargins()
+        mainStack.autoSetDimension(.height, toSize: 60, relation: .greaterThanOrEqual)
     }
     
     private func configureHeaderCell(cell: UITableViewCell) {
@@ -266,9 +292,13 @@ class CashuWalletViewController: OWSTableViewController2 {
         iconView.autoSetDimensions(to: .square(24))
         
         let label = UILabel()
-        label.text = title
-        label.textColor = Theme.primaryTextColor
-        label.font = .dynamicTypeCaption2Clamped
+        // Use NSAttributedString with dynamicTypeCaption2Clamped to prevent iOS from automatically
+        // capitalizing text while maintaining accessibility support
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.dynamicTypeCaption2Clamped,
+            .foregroundColor: Theme.primaryTextColor
+        ]
+        label.attributedText = NSAttributedString(string: title, attributes: attributes)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.lineBreakMode = .byWordWrapping
