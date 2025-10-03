@@ -111,3 +111,4 @@ Consider where Cashu functionality should appear in the Signal UI:
 - [CashuDevKit Documentation](https://github.com/cashubtc/cdk-swift)
 - [Cashu Protocol Specification](https://github.com/cashubtc/nuts)
 - [Signal iOS Contributing Guide](https://github.com/signalapp/Signal-iOS/blob/main/CONTRIBUTING.md)
+

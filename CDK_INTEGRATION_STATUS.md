@@ -101,3 +101,4 @@ The cdk-swift package is now successfully integrated into the Signal iOS workspa
 4. Integrating with Signal's existing payment infrastructure alongside MobileCoin
 
 The integration maintains Signal's architecture while adding new Cashu capabilities through a clean, modular interface.
+

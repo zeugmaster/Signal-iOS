@@ -130,3 +130,4 @@ The Cashu wallet has been successfully integrated into Signal iOS as a simple, a
 - Is ready for real CashuDevKit integration
 
 Users can now access ecash functionality directly from Signal settings without any setup or activation process!
+

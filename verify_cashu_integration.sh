@@ -36,3 +36,4 @@ echo "Next steps if CashuDevKit is linked:"
 echo "1. In CashuIntegration.swift, uncomment: import CashuDevKit"
 echo "2. Remove the mock CashuWallet struct"
 echo "3. Implement real CashuDevKit functionality"
+

@@ -130,3 +130,4 @@ If you encounter issues:
 2. Verify cdk-swift package is properly resolved
 3. Ensure you're adding to the correct target (Signal, not SignalTests)
 4. Try the verification script: `./verify_cashu_integration.sh`
+

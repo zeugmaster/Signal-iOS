@@ -46,3 +46,4 @@ class CashuIntegrationTest: XCTestCase {
         }
     }
 }
+

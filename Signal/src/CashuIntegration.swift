@@ -260,6 +260,25 @@ class CashuIntegration: NSObject {
         return balance.value
     }
     
+    /// Get transaction history
+    func getTransactions(limit: Int? = nil) async throws -> [Transaction] {
+        Logger.info("Getting transaction history...")
+        let wallet = try await getOrCreateWallet()
+        
+        // Get all transactions
+        var transactions = try await wallet.listTransactions(direction: nil)
+        
+        // Sort by timestamp (newest first)
+        transactions.sort { $0.timestamp > $1.timestamp }
+        
+        // Limit if requested
+        if let limit = limit {
+            transactions = Array(transactions.prefix(limit))
+        }
+        
+        return transactions
+    }
+    
     /// Clear wallet
     func clearWallet() async {
         wallet = nil

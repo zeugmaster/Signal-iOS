@@ -134,3 +134,4 @@ Once the files are added to the Xcode project:
 ## Summary
 
 The CashuDevKit integration is complete from a code perspective. The only remaining step is to add the Swift files to the Xcode project so they're included in the build. Once that's done, you'll have a fully functional Cashu wallet integrated into Signal!
+

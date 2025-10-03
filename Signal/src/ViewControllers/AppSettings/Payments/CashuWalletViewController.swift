@@ -7,12 +7,15 @@ import UIKit
 import Lottie
 import SignalServiceKit
 import SignalUI
+import CashuDevKit
 
 class CashuWalletViewController: OWSTableViewController2 {
     
     private let mode: PaymentsSettingsMode
     
     private var balance: UInt64 = 0
+    private var transactions: [Transaction] = []
+    private var btcUsdRate: Double? = nil
     private var mintUrl: String {
         CashuIntegration.shared.getMintUrl()
     }
@@ -56,6 +59,8 @@ class CashuWalletViewController: OWSTableViewController2 {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadWalletBalance()
+        loadTransactions()
+        fetchBtcUsdRate()
         updateTableContents()
     }
     
@@ -81,6 +86,11 @@ class CashuWalletViewController: OWSTableViewController2 {
         // Recovery phrase help card
         contents.add(buildRecoveryPhraseCard())
         
+        // Transaction history section
+        let historySection = OWSTableSection()
+        configureHistorySection(historySection)
+        contents.add(historySection)
+        
         self.contents = contents
     }
     
@@ -89,8 +99,8 @@ class CashuWalletViewController: OWSTableViewController2 {
         
         section.add(OWSTableItem(
             customCellBlock: {
-                let titleLabel = UILabel()
-                titleLabel.text = OWSLocalizedString(
+            let titleLabel = UILabel()
+            titleLabel.text = OWSLocalizedString(
                     "CASHU_RECOVERY_PHRASE_CARD_TITLE",
                     value: "Back up your recovery phrase",
                     comment: "Title for recovery phrase card"
@@ -143,8 +153,8 @@ class CashuWalletViewController: OWSTableViewController2 {
                 let cell = OWSTableItem.newCell()
                 cell.contentView.addSubview(hStack)
                 hStack.autoPinEdgesToSuperviewMargins()
-                
-                return cell
+            
+            return cell
             },
             actionBlock: { [weak self] in
                 self?.showRecoveryPhrase()
@@ -167,16 +177,26 @@ class CashuWalletViewController: OWSTableViewController2 {
         balanceStack.axis = .vertical
         balanceStack.alignment = .fill
         
-        // Mint info label
-        let mintLabel = UILabel()
-        mintLabel.font = .dynamicTypeSubheadlineClamped
-        mintLabel.textColor = Theme.secondaryTextAndIconColor
-        mintLabel.textAlignment = .center
-        mintLabel.numberOfLines = 0
+        // USD conversion label
+        let conversionLabel = UILabel()
+        conversionLabel.font = .dynamicTypeSubheadlineClamped
+        conversionLabel.textColor = Theme.secondaryTextAndIconColor
+        conversionLabel.textAlignment = .center
         
+        if let usdValue = calculateUsdValue() {
+            conversionLabel.text = "≈ \(usdValue)"
+        } else {
+            conversionLabel.text = " "
+        }
+        
+        let conversionStack = UIStackView(arrangedSubviews: [conversionLabel])
+        conversionStack.axis = .vertical
+        conversionStack.alignment = .center
+        
+        // Mint info label
         let mintNameLabel = UILabel()
         mintNameLabel.text = extractMintName(from: mintUrl)
-        mintNameLabel.font = .dynamicTypeSubheadlineClamped
+        mintNameLabel.font = .dynamicTypeCaption1Clamped
         mintNameLabel.textColor = Theme.secondaryTextAndIconColor
         mintNameLabel.textAlignment = .center
         
@@ -208,6 +228,8 @@ class CashuWalletViewController: OWSTableViewController2 {
             arrangedSubviews: [
                 balanceStack,
                 UIView.spacer(withHeight: 8),
+                conversionStack,
+                UIView.spacer(withHeight: 4),
                 mintStack,
                 UIView.spacer(withHeight: 44),
                 buttonStack
@@ -450,6 +472,155 @@ class CashuWalletViewController: OWSTableViewController2 {
                 }
             }
         }
+    }
+    
+    private func loadTransactions() {
+        Task {
+            do {
+                let txs = try await CashuIntegration.shared.getTransactions(limit: 4)
+                await MainActor.run {
+                    self.transactions = txs
+                    self.updateTableContents()
+                }
+            } catch {
+                await MainActor.run {
+                    self.transactions = []
+                }
+            }
+        }
+    }
+    
+    private func fetchBtcUsdRate() {
+        Task {
+            do {
+                // Fetch BTC/USD rate from a public API
+                guard let url = URL(string: "https://api.coinbase.com/v2/exchange-rates?currency=BTC") else { return }
+                
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let dataDict = json["data"] as? [String: Any],
+                   let rates = dataDict["rates"] as? [String: String],
+                   let usdRate = rates["USD"],
+                   let rate = Double(usdRate) {
+                    await MainActor.run {
+                        self.btcUsdRate = rate
+                        self.updateTableContents()
+                    }
+                }
+            } catch {
+                // Silently fail - conversion is optional
+            }
+        }
+    }
+    
+    private func calculateUsdValue() -> String? {
+        guard let rate = btcUsdRate, balance > 0 else { return nil }
+        
+        // Convert sats to BTC (100,000,000 sats = 1 BTC)
+        let btcAmount = Double(balance) / 100_000_000.0
+        let usdAmount = btcAmount * rate
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        formatter.maximumFractionDigits = 2
+        
+        return formatter.string(from: NSNumber(value: usdAmount))
+    }
+    
+    private func configureHistorySection(_ section: OWSTableSection) {
+        guard !transactions.isEmpty else {
+            section.hasBackground = false
+            section.shouldDisableCellSelection = true
+            section.add(OWSTableItem(
+                customCellBlock: {
+                    let cell = OWSTableItem.newCell()
+                    
+                    let label = UILabel()
+                    label.text = OWSLocalizedString(
+                        "CASHU_NO_TRANSACTIONS",
+                        value: "No transactions yet",
+                        comment: "Message when there are no transactions"
+                    )
+                    label.textColor = Theme.secondaryTextAndIconColor
+                    label.font = UIFont.dynamicTypeBodyClamped
+                    label.numberOfLines = 0
+                    label.lineBreakMode = .byWordWrapping
+                    label.textAlignment = .center
+                    
+                    let stack = UIStackView(arrangedSubviews: [label])
+                    stack.axis = .vertical
+                    stack.alignment = .fill
+                    stack.layoutMargins = UIEdgeInsets(top: 10, leading: 0, bottom: 30, trailing: 0)
+                    stack.isLayoutMarginsRelativeArrangement = true
+                    
+                    cell.contentView.addSubview(stack)
+                    stack.autoPinEdgesToSuperviewMargins()
+                    
+                    return cell
+                },
+                actionBlock: nil
+            ))
+            return
+        }
+        
+        section.headerTitle = OWSLocalizedString(
+            "SETTINGS_PAYMENTS_RECENT_PAYMENTS",
+            comment: "Label for recent payments section"
+        )
+        
+        for transaction in transactions {
+            section.add(OWSTableItem(
+                customCellBlock: { [weak self] in
+                    let cell = OWSTableItem.newCell()
+                    self?.configureTransactionCell(cell: cell, transaction: transaction)
+                    return cell
+                },
+                actionBlock: nil
+            ))
+        }
+    }
+    
+    private func configureTransactionCell(cell: UITableViewCell, transaction: CashuDevKit.Transaction) {
+        let isIncoming = transaction.direction == CashuDevKit.TransactionDirection.incoming
+        
+        let iconView = UIImageView()
+        iconView.setTemplateImageName(
+            isIncoming ? "arrow-circle-down" : "arrow-up",
+            tintColor: isIncoming ? .ows_accentGreen : .ows_accentBlue
+        )
+        iconView.autoSetDimensions(to: .square(24))
+        
+        let titleLabel = UILabel()
+        titleLabel.text = isIncoming ? "Received" : "Sent"
+        titleLabel.font = .dynamicTypeBody
+        titleLabel.textColor = Theme.primaryTextColor
+        
+        let dateLabel = UILabel()
+        let date = Date(timeIntervalSince1970: TimeInterval(transaction.timestamp))
+        dateLabel.text = DateUtil.formatDateAsTime(date)
+        dateLabel.font = .dynamicTypeCaption1
+        dateLabel.textColor = Theme.secondaryTextAndIconColor
+        
+        let leftStack = UIStackView(arrangedSubviews: [titleLabel, dateLabel])
+        leftStack.axis = .vertical
+        leftStack.spacing = 2
+        leftStack.alignment = .leading
+        
+        let amountLabel = UILabel()
+        amountLabel.text = (isIncoming ? "+" : "-") + formatBalance(transaction.amount.value) + " sats"
+        amountLabel.font = .monospacedSystemFont(ofSize: UIFont.dynamicTypeBody.pointSize, weight: .regular)
+        amountLabel.textColor = isIncoming ? .ows_accentGreen : Theme.primaryTextColor
+        amountLabel.textAlignment = .right
+        
+        let mainStack = UIStackView(arrangedSubviews: [iconView, leftStack, UIView.hStretchingSpacer(), amountLabel])
+        mainStack.axis = .horizontal
+        mainStack.spacing = 12
+        mainStack.alignment = .center
+        
+        cell.contentView.addSubview(mainStack)
+        mainStack.autoPinEdgesToSuperviewMargins()
+        mainStack.autoSetDimension(.height, toSize: 60, relation: .greaterThanOrEqual)
     }
     
     // MARK: - Minting Process

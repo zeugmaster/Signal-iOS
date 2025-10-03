@@ -81,3 +81,4 @@ let balance = try await wallet.totalBalance()
 5. Test changing the mint URL
 
 The integration is complete and ready for use!
+
