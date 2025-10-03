@@ -25,6 +25,10 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
         super.init(itemModel: itemModel)
     }
 
+    public override var debugDescription: String {
+        return "CVComponentCashuToken(token: \(truncatedTokenString()))"
+    }
+
     public func buildComponentView(componentDelegate: CVComponentDelegate) -> CVComponentView {
         CVComponentViewCashuToken()
     }
@@ -51,7 +55,7 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
 
         let cashuIcon = componentView.cashuIcon
         cashuIcon.contentMode = .center
-        cashuIcon.setTemplateImageName("arrow-circle-right-32", tintColor: conversationStyle.bubbleTextColor(isIncoming: isIncoming))
+        cashuIcon.setTemplateImageName("payment-28", tintColor: conversationStyle.bubbleTextColor(isIncoming: isIncoming))
 
         hStackView.configure(
             config: hStackConfig,
@@ -152,7 +156,7 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
     ) -> CGSize {
         owsAssertDebug(maxWidth > 0)
 
-        let iconSize = CGSize(square: 24)
+        let iconSize = CGSize(square: 28)
         let maxTokenLabelWidth = max(0, maxWidth - hStackConfig.layoutMargins.totalWidth - iconSize.width - hStackConfig.spacing * 2 - 10)
 
         let tokenLabelSize = CVText.measureLabel(

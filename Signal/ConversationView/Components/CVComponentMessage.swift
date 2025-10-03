@@ -978,7 +978,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
     private static var topFullWidthCVComponentKeys: [CVComponentKey] { [.linkPreview] }
     private static var topNestedCVComponentKeys: [CVComponentKey] { [.senderName] }
     private static var bottomFullWidthCVComponentKeys: [CVComponentKey] { [.quotedReply, .bodyMedia] }
-    private static var bottomNestedShareCVComponentKeys: [CVComponentKey] { [.viewOnce, .audioAttachment, .genericAttachment, .paymentAttachment, .archivedPaymentAttachment, .contactShare, .giftBadge, .poll] }
+    private static var bottomNestedShareCVComponentKeys: [CVComponentKey] { [.viewOnce, .audioAttachment, .genericAttachment, .paymentAttachment, .archivedPaymentAttachment, .cashuToken, .contactShare, .giftBadge, .poll] }
     private static var bottomNestedTextCVComponentKeys: [CVComponentKey] { [.bodyText, .footer, .undownloadableAttachment] }
 
     // The "message" contents of this component for most messages are vertically
