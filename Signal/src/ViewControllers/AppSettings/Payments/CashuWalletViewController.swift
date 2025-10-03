@@ -217,7 +217,18 @@ class CashuWalletViewController: OWSTableViewController2 {
             selector: #selector(didTapAddFunds)
         )
         
-        let buttonStack = UIStackView(arrangedSubviews: [addFundsButton])
+        // Withdraw button
+        let withdrawButton = buildHeaderButton(
+            title: OWSLocalizedString(
+                "CASHU_WITHDRAW",
+                value: "Withdraw",
+                comment: "Button to withdraw funds"
+            ),
+            iconName: "arrow-up-20",
+            selector: #selector(didTapWithdraw)
+        )
+        
+        let buttonStack = UIStackView(arrangedSubviews: [addFundsButton, withdrawButton])
         buttonStack.axis = .horizontal
         buttonStack.spacing = 8
         buttonStack.alignment = .fill
@@ -407,6 +418,12 @@ class CashuWalletViewController: OWSTableViewController2 {
         ))
         
         present(alert, animated: true)
+    }
+    
+    @objc
+    private func didTapWithdraw() {
+        let withdrawVC = WithdrawViewController()
+        navigationController?.pushViewController(withdrawVC, animated: true)
     }
     
     private func showManageMints() {

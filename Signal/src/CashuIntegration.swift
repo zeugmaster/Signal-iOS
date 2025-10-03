@@ -179,6 +179,12 @@ class CashuIntegration: NSObject {
         let invoice: String
     }
     
+    struct MeltResult {
+        let amountPaid: UInt64
+        let feePaid: UInt64
+        let preimage: String?
+    }
+    
     /// Create a mint quote (Lightning invoice)
     func createMintQuote(amount: UInt64) async throws -> MintQuoteInfo {
         Logger.info("Creating mint quote for \(amount) sats")
@@ -208,6 +214,36 @@ class CashuIntegration: NSObject {
         )
         
         Logger.info("Tokens minted successfully")
+    }
+    
+    /// Create a melt quote for a Lightning invoice
+    func createMeltQuote(invoice: String) async throws -> MeltQuote {
+        Logger.info("Creating melt quote for invoice")
+        let wallet = try await getOrCreateWallet()
+        
+        let quote = try await wallet.meltQuote(
+            request: invoice,
+            options: nil
+        )
+        
+        Logger.info("Melt quote created: amount=\(quote.amount.value), fee=\(quote.feeReserve.value)")
+        return quote
+    }
+    
+    /// Melt tokens to pay a Lightning invoice
+    func meltTokens(quoteId: String) async throws -> MeltResult {
+        Logger.info("Melting tokens for quote: \(quoteId)")
+        let wallet = try await getOrCreateWallet()
+        
+        let melted = try await wallet.melt(quoteId: quoteId)
+        
+        Logger.info("Tokens melted successfully: paid=\(melted.amount.value), fee=\(melted.feePaid.value)")
+        
+        return MeltResult(
+            amountPaid: melted.amount.value,
+            feePaid: melted.feePaid.value,
+            preimage: melted.preimage
+        )
     }
     
     /// Send Cashu tokens

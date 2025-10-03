@@ -446,6 +446,7 @@
 		3703386A2E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338692E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift */; };
 		3703386C2E8D90000005A862 /* SendCashuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386B2E8D90000005A862 /* SendCashuViewController.swift */; };
 		3703386E2E8D95000005A862 /* AddFundsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386D2E8D95000005A862 /* AddFundsViewController.swift */; };
+		A6EE9A8F67884D82A20476F4 /* WithdrawViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C4CE6EEEDC4227BAB3C16C /* WithdrawViewController.swift */; };
 		370338702E8DA0000005A862 /* ManageMintsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386F2E8DA0000005A862 /* ManageMintsViewController.swift */; };
 		370338722E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338712E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift */; };
 		37F5FC952E9017BB00144555 /* CVComponentCashuToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F5FC942E9017BB00144555 /* CVComponentCashuToken.swift */; };
@@ -4344,6 +4345,7 @@
 		370338692E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift; sourceTree = "<group>"; };
 		3703386B2E8D90000005A862 /* SendCashuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendCashuViewController.swift; sourceTree = "<group>"; };
 		3703386D2E8D95000005A862 /* AddFundsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFundsViewController.swift; sourceTree = "<group>"; };
+		51C4CE6EEEDC4227BAB3C16C /* WithdrawViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawViewController.swift; sourceTree = "<group>"; };
 		3703386F2E8DA0000005A862 /* ManageMintsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageMintsViewController.swift; sourceTree = "<group>"; };
 		370338712E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCashuRecoveryPhraseViewController.swift; sourceTree = "<group>"; };
 		37F5FC942E9017BB00144555 /* CVComponentCashuToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CVComponentCashuToken.swift; sourceTree = "<group>"; };
@@ -8294,6 +8296,7 @@
 			isa = PBXGroup;
 			children = (
 				3703386D2E8D95000005A862 /* AddFundsViewController.swift */,
+				51C4CE6EEEDC4227BAB3C16C /* WithdrawViewController.swift */,
 				3703386F2E8DA0000005A862 /* ManageMintsViewController.swift */,
 				370338712E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift */,
 				C1661A192C3D939300AB887F /* ArchivedPaymentHistoryItem.swift */,
@@ -17426,6 +17429,7 @@
 				884DB95427DEB9E900C6A309 /* StoryPlaybackProgressView.swift in Sources */,
 				3703386A2E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift in Sources */,
 				3703386E2E8D95000005A862 /* AddFundsViewController.swift in Sources */,
+				A6EE9A8F67884D82A20476F4 /* WithdrawViewController.swift in Sources */,
 				370338702E8DA0000005A862 /* ManageMintsViewController.swift in Sources */,
 				370338722E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift in Sources */,
 				88B2234A283F290400A25048 /* StoryPrivacySettingsViewController.swift in Sources */,
