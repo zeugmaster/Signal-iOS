@@ -6,6 +6,7 @@
 import Foundation
 import SignalServiceKit
 public import SignalUI
+import CashuDevKit
 
 @objc
 public class CVComponentCashuToken: CVComponentBase, CVComponent {
@@ -14,6 +15,7 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
 
     private let tokenString: String
     private let contactName: String
+    private let tokenAmount: UInt64?
 
     init(
         itemModel: CVItemModel,
@@ -22,7 +24,23 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
     ) {
         self.tokenString = tokenString
         self.contactName = contactName
+        
+        // Try to decode the token to get the amount
+        self.tokenAmount = Self.decodeTokenAmount(tokenString)
+        
         super.init(itemModel: itemModel)
+    }
+    
+    private static func decodeTokenAmount(_ tokenString: String) -> UInt64? {
+        do {
+            let token = try Token.fromString(encodedToken: tokenString)
+            let proofs = try token.proofsSimple()
+            let totalAmount = proofs.map { $0.amount().value }.reduce(0, +)
+            return totalAmount
+        } catch {
+            Logger.warn("Failed to decode cashu token amount: \(error)")
+            return nil
+        }
     }
 
     public override var debugDescription: String {
@@ -44,11 +62,8 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
             return
         }
 
-        let topLabel = componentView.topLabel
-        topLabelConfig.applyForRendering(label: topLabel)
-
-        let tokenLabel = componentView.tokenLabel
-        tokenLabelConfig.applyForRendering(label: tokenLabel)
+        let amountLabel = componentView.amountLabel
+        amountLabelConfig.applyForRendering(label: amountLabel)
 
         let hStackView = componentView.hStackView
         hStackView.addBlurBackgroundExactlyOnce(isIncoming: isIncoming)
@@ -61,16 +76,7 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
             config: hStackConfig,
             cellMeasurement: cellMeasurement,
             measurementKey: .measurementKey_hStack,
-            subviews: [cashuIcon, componentView.tokenLabel, componentView.rightSpace]
-        )
-
-        let vStackView = componentView.vStackView
-
-        vStackView.configure(
-            config: vStackConfig,
-            cellMeasurement: cellMeasurement,
-            measurementKey: .measurementKey_vStack,
-            subviews: [topLabel, hStackView]
+            subviews: [cashuIcon, componentView.amountLabel, componentView.rightSpace]
         )
     }
 
@@ -87,23 +93,47 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
             axis: .horizontal,
             alignment: .center,
             spacing: 12,
-            layoutMargins: UIEdgeInsets(top: 16, leading: 12, bottom: 16, trailing: 16)
+            layoutMargins: UIEdgeInsets(top: 25, leading: 12, bottom: 25, trailing: 16)
         )
     }
 
-    private var vStackConfig: CVStackViewConfig {
-        CVStackViewConfig(
-            axis: .vertical,
-            alignment: .leading,
-            spacing: 8,
-            layoutMargins: UIEdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0)
+    private func formatAmount() -> NSAttributedString {
+        guard let amount = tokenAmount else {
+            let text = OWSLocalizedString(
+                "CASHU_TOKEN_INVALID",
+                comment: "Status indicator for invalid cashu tokens."
+            )
+            return NSAttributedString(string: text)
+        }
+        
+        // Format like payment: large amount + " sats" in thinner font
+        let firstAttributes: [NSAttributedString.Key: Any] = [.font: UIFont.dynamicTypeLargeTitle1Clamped.withSize(32)]
+        
+        let startingFont = UIFont.dynamicTypeLargeTitle1Clamped.withSize(32)
+        let traits = [UIFontDescriptor.TraitKey.weight: UIFont.Weight.thin]
+        let thinFontDescriptor = startingFont.fontDescriptor.addingAttributes(
+            [UIFontDescriptor.AttributeName.traits: traits]
         )
+        
+        let newThinFont = UIFont(descriptor: thinFontDescriptor, size: startingFont.pointSize)
+        let secondAttributes: [NSAttributedString.Key: Any] = [.font: newThinFont]
+        
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        numberFormatter.groupingSeparator = ","
+        let formattedAmount = numberFormatter.string(from: NSNumber(value: amount)) ?? "\(amount)"
+        
+        let firstString = NSMutableAttributedString(string: formattedAmount, attributes: firstAttributes)
+        let secondString = NSMutableAttributedString(string: " sats", attributes: secondAttributes)
+        
+        firstString.append(secondString)
+        return firstString
     }
 
-    private var tokenLabelConfig: CVLabelConfig {
-        let font = UIFont.monospacedSystemFont(ofSize: 16, weight: .regular)
+    private var amountLabelConfig: CVLabelConfig {
+        let font = UIFont.dynamicTypeLargeTitle1Clamped.withSize(28)
         return CVLabelConfig(
-            text: .text(truncatedTokenString()),
+            text: .attributedText(formatAmount()),
             displayConfig: .forUnstyledText(
                 font: font,
                 textColor: conversationStyle.bubbleTextColor(isIncoming: isIncoming)
@@ -111,42 +141,8 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
             font: font,
             textColor: conversationStyle.bubbleTextColor(isIncoming: isIncoming),
             numberOfLines: 1,
-            lineBreakMode: .byTruncatingMiddle
-        )
-    }
-
-    private var topLabelConfig: CVLabelConfig {
-        let text: String
-        let interactionType = itemModel.interaction.interactionType
-        switch interactionType {
-        case .incomingMessage:
-            let format = OWSLocalizedString(
-                "CASHU_PAYMENT_STATUS_IN_CHAT_SENT_YOU",
-                comment: "Cashu payment status context with contact name, incoming. Embeds {{ Name of sending contact }}"
-            )
-            text = String(format: format, contactName)
-        case .outgoingMessage:
-            let format = OWSLocalizedString(
-                "CASHU_PAYMENT_STATUS_IN_CHAT_YOU_SENT",
-                comment: "Cashu payment status context with contact name, sent. Embeds {{ Name of receiving contact }}"
-            )
-            text = String(format: format, contactName)
-        default:
-            text = OWSLocalizedString(
-                "CASHU_PAYMENT_STATUS_IN_CHAT_PAYMENT",
-                comment: "Cashu payment status context"
-            )
-        }
-
-        return CVLabelConfig(
-            text: .text(text),
-            displayConfig: .forUnstyledText(
-                font: .dynamicTypeBody,
-                textColor: conversationStyle.bubbleTextColor(isIncoming: isIncoming)
-            ),
-            font: UIFont.dynamicTypeBody,
-            textColor: conversationStyle.bubbleTextColor(isIncoming: isIncoming),
-            lineBreakMode: .byTruncatingMiddle
+            lineBreakMode: .byWordWrapping,
+            textAlignment: .center
         )
     }
 
@@ -157,16 +153,16 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
         owsAssertDebug(maxWidth > 0)
 
         let iconSize = CGSize(square: 28)
-        let maxTokenLabelWidth = max(0, maxWidth - hStackConfig.layoutMargins.totalWidth - iconSize.width - hStackConfig.spacing * 2 - 10)
+        let maxAmountLabelWidth = max(0, maxWidth - hStackConfig.layoutMargins.totalWidth - iconSize.width - hStackConfig.spacing * 2 - 10)
 
-        let tokenLabelSize = CVText.measureLabel(
-            config: tokenLabelConfig,
-            maxWidth: maxTokenLabelWidth
+        let amountLabelSize = CVText.measureLabel(
+            config: amountLabelConfig,
+            maxWidth: maxAmountLabelWidth
         )
 
         var hSubviewInfos = [ManualStackSubviewInfo]()
         hSubviewInfos.append(iconSize.asManualSubviewInfo())
-        hSubviewInfos.append(tokenLabelSize.asManualSubviewInfo())
+        hSubviewInfos.append(amountLabelSize.asManualSubviewInfo())
         hSubviewInfos.append(iconSize.asManualSubviewInfo()) // right spacer
 
         let hStackMeasurement = ManualStackView.measure(
@@ -177,21 +173,7 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
             maxWidth: maxWidth
         )
 
-        let maxTopLabelWidth = max(0, maxWidth - vStackConfig.layoutMargins.totalWidth)
-        let topLabelSize = CVText.measureLabel(config: topLabelConfig, maxWidth: maxTopLabelWidth)
-
-        var vSubviewInfos = [ManualStackSubviewInfo]()
-        vSubviewInfos.append(topLabelSize.asManualSubviewInfo())
-        vSubviewInfos.append(hStackMeasurement.measuredSize.asManualSubviewInfo)
-
-        let vStackMeasurement = ManualStackView.measure(
-            config: vStackConfig,
-            measurementBuilder: measurementBuilder,
-            measurementKey: .measurementKey_vStack,
-            subviewInfos: vSubviewInfos
-        )
-
-        return vStackMeasurement.measuredSize
+        return hStackMeasurement.measuredSize
     }
 
     // MARK: - CVComponentView
@@ -199,28 +181,24 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
     public class CVComponentViewCashuToken: NSObject, CVComponentView {
 
         fileprivate let hStackView = ManualStackView(name: "CashuToken.hStackView")
-        fileprivate let vStackView = ManualStackView(name: "CashuToken.vStackView")
 
         fileprivate let cashuIcon = UIImageView()
         fileprivate var rightSpace = UIView()
 
-        fileprivate let tokenLabel = CVLabel()
-        fileprivate let topLabel = CVLabel()
+        fileprivate let amountLabel = CVLabel()
 
         public var isDedicatedCellView = true
 
         public var rootView: UIView {
-            vStackView
+            hStackView
         }
 
         public func setIsCellVisible(_ isCellVisible: Bool) {}
 
         public func reset() {
             hStackView.reset()
-            vStackView.reset()
 
-            tokenLabel.text = nil
-            topLabel.text = nil
+            amountLabel.text = nil
 
             rightSpace.removeAllSubviews()
         }
@@ -241,7 +219,6 @@ public class CVComponentCashuToken: CVComponentBase, CVComponent {
 
 fileprivate extension String {
     static let measurementKey_hStack = "CVComponentCashuToken.measurementKey_hStack"
-    static let measurementKey_vStack = "CVComponentCashuToken.measurementKey_vStack"
 }
 
 extension CVComponentCashuToken: CVAccessibilityComponent {
