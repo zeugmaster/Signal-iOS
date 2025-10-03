@@ -433,7 +433,7 @@ public class CVLoader: NSObject {
             rootComponent = CVComponentSystemMessage(itemModel: itemModel,
                                                      systemMessage: defaultDisappearingMessageTimer)
         case .textOnlyMessage, .audio, .genericAttachment, .paymentAttachment, .archivedPaymentAttachment,
-                .undownloadableAttachment,
+                .cashuToken, .undownloadableAttachment,
                 .contactShare, .bodyMedia, .viewOnce, .stickerMessage, .quoteOnlyMessage,
                 .giftBadge, .poll:
             rootComponent = CVComponentMessage(itemModel: itemModel)

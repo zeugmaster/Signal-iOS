@@ -280,3 +280,4 @@ The Cashu wallet now has:
 
 The wallet now provides complete visibility into balance and activity! 💰📊
 
+

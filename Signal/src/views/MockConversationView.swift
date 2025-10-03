@@ -489,6 +489,8 @@ extension MockConversationView: CVComponentDelegate {
 
     func didTapPayment(_ payment: PaymentsHistoryItem) {}
 
+    func didTapCashuToken(tokenString: String) {}
+
     func didTapActivatePayments() {}
     func didTapSendPayment() {}
 

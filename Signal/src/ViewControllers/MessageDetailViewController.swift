@@ -1149,6 +1149,8 @@ extension MessageDetailViewController: CVComponentDelegate {
 
     func didTapPayment(_ payment: PaymentsHistoryItem) {}
 
+    func didTapCashuToken(tokenString: String) {}
+
     func didTapGroupInviteLink(url: URL) {
         GroupInviteLinksUI.openGroupInviteLink(url, fromViewController: self)
     }

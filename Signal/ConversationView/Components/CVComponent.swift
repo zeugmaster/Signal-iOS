@@ -335,6 +335,7 @@ public enum CVComponentKey: CustomStringConvertible, CaseIterable {
     case genericAttachment
     case paymentAttachment
     case archivedPaymentAttachment
+    case cashuToken
     case undownloadableAttachment
     case contactShare
     case bottomButtons
@@ -384,6 +385,8 @@ public enum CVComponentKey: CustomStringConvertible, CaseIterable {
             return ".paymentAttchment"
         case .archivedPaymentAttachment:
             return ".archivedPaymentAttachment"
+        case .cashuToken:
+            return ".cashuToken"
         case .undownloadableAttachment:
             return ".undownloadableAttachment"
         case .contactShare:

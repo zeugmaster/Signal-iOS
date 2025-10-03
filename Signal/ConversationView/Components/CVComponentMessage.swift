@@ -61,6 +61,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
     private var archivedPaymentAttachment: CVComponent?
 
+    private var cashuToken: CVComponent?
+
     private var undownloadableAttachment: CVComponent?
 
     private var contactShare: CVComponent?
@@ -133,6 +135,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             return self.paymentAttachment
         case .archivedPaymentAttachment:
             return self.archivedPaymentAttachment
+        case .cashuToken:
+            return self.cashuToken
         case .undownloadableAttachment:
             return self.undownloadableAttachment
         case .quotedReply:
@@ -349,6 +353,23 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                 itemModel: itemModel,
                 archivedPaymentAttachment: archivedPaymentAttachment,
                 messageStatus: messageStatus
+            )
+        }
+
+        if let cashuToken = componentState.cashuToken {
+            if let footerState = itemViewState.footerState {
+                self.standaloneFooter = CVComponentFooter(
+                    itemModel: itemModel,
+                    footerState: footerState,
+                    isOverlayingMedia: false,
+                    isOutsideBubble: false
+                )
+            }
+
+            self.cashuToken = CVComponentCashuToken(
+                itemModel: itemModel,
+                tokenString: cashuToken.tokenString,
+                contactName: cashuToken.otherUserShortName
             )
         }
 
@@ -1215,7 +1236,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             switch componentKey {
             case .bodyText:
                 return false
-            case .bodyMedia, .sticker, .quotedReply, .linkPreview, .viewOnce, .audioAttachment, .genericAttachment, .paymentAttachment, .archivedPaymentAttachment, .contactShare:
+            case .bodyMedia, .sticker, .quotedReply, .linkPreview, .viewOnce, .audioAttachment, .genericAttachment, .paymentAttachment, .archivedPaymentAttachment, .cashuToken, .contactShare:
                 return true
             case .undownloadableAttachment:
                 return false
@@ -1224,14 +1245,14 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                 return true
             case .senderName:
                 return false
+            case .poll:
+                return true
             case .senderAvatar, .reactions, .systemMessage, .dateHeader, .unreadIndicator, .typingIndicator, .threadDetails, .unknownThreadWarning, .failedOrPendingDownloads, .sendFailureBadge, .defaultDisappearingMessageTimer, .messageRoot:
                 owsFailDebug("Unexpected component.")
                 return false
             case .footer:
                 return false
             case .bottomButtons, .bottomLabel:
-                return true
-            case .poll:
                 return true
             }
         }
@@ -2040,6 +2061,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         var paymentAttachmentView: CVComponentView?
         var undownloadableAttachmentView: CVComponentView?
         var archivedPaymentView: CVComponentView?
+        var cashuTokenView: CVComponentView?
         var contactShareView: CVComponentView?
         var bottomButtonsView: CVComponentView?
         var bottomLabelView: CVComponentView?
@@ -2098,6 +2120,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                 return paymentAttachmentView
             case .archivedPaymentAttachment:
                 return archivedPaymentView
+            case .cashuToken:
+                return cashuTokenView
             case .undownloadableAttachment:
                 return undownloadableAttachmentView
             case .contactShare:
@@ -2149,6 +2173,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                 paymentAttachmentView = subcomponentView
             case .archivedPaymentAttachment:
                 archivedPaymentView = subcomponentView
+            case .cashuToken:
+                cashuTokenView = subcomponentView
             case .undownloadableAttachment:
                 undownloadableAttachmentView = subcomponentView
             case .contactShare:

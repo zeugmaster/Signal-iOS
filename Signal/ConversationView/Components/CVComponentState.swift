@@ -201,6 +201,12 @@ public class CVComponentState: Equatable {
     }
     var paymentAttachment: PaymentAttachment?
 
+    public struct CashuToken: Equatable {
+        let tokenString: String
+        let otherUserShortName: String
+    }
+    var cashuToken: CashuToken?
+
     public struct ArchivedPaymentAttachment: Equatable {
         let amount: String?
         let fee: String?
@@ -473,6 +479,7 @@ public class CVComponentState: Equatable {
         genericAttachment: GenericAttachment?,
         paymentAttachment: PaymentAttachment?,
         archivedPaymentAttachment: ArchivedPaymentAttachment?,
+        cashuToken: CashuToken?,
         audioAttachment: AudioAttachment?,
         viewOnce: ViewOnce?,
         quotedReply: QuotedReply?,
@@ -505,6 +512,7 @@ public class CVComponentState: Equatable {
         self.genericAttachment = genericAttachment
         self.paymentAttachment = paymentAttachment
         self.archivedPaymentAttachment = archivedPaymentAttachment
+        self.cashuToken = cashuToken
         self.audioAttachment = audioAttachment
         self.viewOnce = viewOnce
         self.quotedReply = quotedReply
@@ -608,6 +616,7 @@ public class CVComponentState: Equatable {
         var genericAttachment: GenericAttachment?
         var paymentAttachment: PaymentAttachment?
         var archivedPaymentAttachment: ArchivedPaymentAttachment?
+        var cashuToken: CashuToken?
         var audioAttachment: AudioAttachment?
         var viewOnce: ViewOnce?
         var quotedReply: QuotedReply?
@@ -655,6 +664,7 @@ public class CVComponentState: Equatable {
                 genericAttachment: genericAttachment,
                 paymentAttachment: paymentAttachment,
                 archivedPaymentAttachment: archivedPaymentAttachment,
+                cashuToken: cashuToken,
                 audioAttachment: audioAttachment,
                 viewOnce: viewOnce,
                 quotedReply: quotedReply,
@@ -736,6 +746,9 @@ public class CVComponentState: Equatable {
             }
             if archivedPaymentAttachment != nil {
                 return .archivedPaymentAttachment
+            }
+            if cashuToken != nil {
+                return .cashuToken
             }
             if giftBadge != nil {
                 return .giftBadge
@@ -1052,6 +1065,12 @@ fileprivate extension CVComponentState.Builder {
         // Check for quoted replies _before_ media album handling,
         // since that logic may exit early.
         buildQuotedReply(message: message, revealedSpoilerIdsSnapshot: revealedSpoilerIdsSnapshot)
+
+        // Check if the message contains a cashu token BEFORE building body text
+        // This ensures cashu tokens are displayed as special components, not plain text
+        if let messageBody = message.body, isCashuToken(messageBody) {
+            return buildCashuToken(message: message, tokenString: messageBody)
+        }
 
         try buildBodyText(message: message)
 
@@ -1639,6 +1658,31 @@ fileprivate extension CVComponentState.Builder {
         return build()
     }
 
+    private func isCashuToken(_ text: String) -> Bool {
+        // Cashu tokens start with "cashu" followed by encoded data
+        // Check case-insensitively and ensure it's long enough to be a valid token
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercased = trimmed.lowercased()
+        
+        // Must start with "cashu" and be longer than just the prefix
+        // Typical cashu tokens are 100+ characters
+        return lowercased.hasPrefix("cashu") && trimmed.count > 20
+    }
+
+    mutating func buildCashuToken(
+        message: TSMessage,
+        tokenString: String
+    ) -> CVComponentState {
+        
+        self.cashuToken = CVComponentState.CashuToken(
+            tokenString: tokenString,
+            // Only used for 1:1 threads, but not enforced.
+            otherUserShortName: threadViewModel.shortName ?? threadViewModel.name
+        )
+        
+        return build()
+    }
+
     private mutating func buildLinkPreview(message: TSMessage, linkPreview: OWSLinkPreview) throws {
         guard bodyText != nil else {
             owsFailDebug("Missing body text.")
@@ -1880,18 +1924,20 @@ public extension CVComponentState {
             case .viewOnce:
                 // We should never forward view-once messages.
                 break
-            case .systemMessage:
-                // We should never forward system messages.
-                break
-            case .quotedReply:
-                // Quoted replies are never forwarded.
-                break
-            case .paymentAttachment, .archivedPaymentAttachment:
-                // Payments can't be forwarded.
-                break
-            case .poll:
+            case .paymentAttachment, .archivedPaymentAttachment, .cashuToken:
+                // Payment-related content can't be forwarded.
                 break
             case .undownloadableAttachment:
+                // Undownloadable attachments can't be forwarded.
+                break
+            case .quotedReply:
+                // Quoted replies are associated with the body text.
+                break
+            case .poll:
+                // Polls have their own primary content.
+                hasPrimaryContent = true
+            case .systemMessage:
+                // System messages aren't forwarded.
                 break
             }
         }

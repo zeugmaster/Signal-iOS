@@ -362,7 +362,6 @@
 		3497972025DAA86100E99FA4 /* SendPaymentCompletionActionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3497971E25DAA86100E99FA4 /* SendPaymentCompletionActionSheet.swift */; };
 		3497972125DAA86100E99FA4 /* SendPaymentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3497971F25DAA86100E99FA4 /* SendPaymentViewController.swift */; };
 		3497972325DAAE3800E99FA4 /* SendPaymentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3497972225DAAE3800E99FA4 /* SendPaymentHelper.swift */; };
-		3703386C2E8D90000005A862 /* SendCashuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386B2E8D90000005A862 /* SendCashuViewController.swift */; };
 		3498AC902518E92B00B1F315 /* PaymentsHistoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3498AC8D2518E92B00B1F315 /* PaymentsHistoryViewController.swift */; };
 		3498AC912518E92B00B1F315 /* PaymentsHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3498AC8E2518E92B00B1F315 /* PaymentsHistory.swift */; };
 		3498AC922518E92B00B1F315 /* PaymentsSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3498AC8F2518E92B00B1F315 /* PaymentsSettingsViewController.swift */; };
@@ -443,11 +442,13 @@
 		34FB6A5525D2E17200E599B1 /* PaymentModelCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34FB6A5425D2E17200E599B1 /* PaymentModelCell.swift */; };
 		34FCCA04264AEDFE00A63EDE /* CustomColorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34FCCA03264AEDFE00A63EDE /* CustomColorViewController.swift */; };
 		370338652E8D41E90005A862 /* CashuDevKit in Frameworks */ = {isa = PBXBuildFile; productRef = 370338642E8D41E90005A862 /* CashuDevKit */; };
-		370338672E8D477A0005A862 /* CashuIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338662E8D477A0005A862 /* CashuIntegration.swift */; };
-		3703386A2E8D47D00005A862 /* CashuWalletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338692E8D47D00005A862 /* CashuWalletViewController.swift */; };
+		370338672E8D477A0005A862 /* src/CashuIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338662E8D477A0005A862 /* src/CashuIntegration.swift */; };
+		3703386A2E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338692E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift */; };
+		3703386C2E8D90000005A862 /* SendCashuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386B2E8D90000005A862 /* SendCashuViewController.swift */; };
 		3703386E2E8D95000005A862 /* AddFundsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386D2E8D95000005A862 /* AddFundsViewController.swift */; };
 		370338702E8DA0000005A862 /* ManageMintsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3703386F2E8DA0000005A862 /* ManageMintsViewController.swift */; };
 		370338722E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370338712E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift */; };
+		37F5FC952E9017BB00144555 /* CVComponentCashuToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F5FC942E9017BB00144555 /* CVComponentCashuToken.swift */; };
 		4503F1BE20470A5B00CEE724 /* classic-quiet.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 4503F1BB20470A5B00CEE724 /* classic-quiet.aifc */; };
 		4503F1BF20470A5B00CEE724 /* classic.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 4503F1BC20470A5B00CEE724 /* classic.aifc */; };
 		45069FC629D3A7C800D0DD14 /* WideMediaTileViewLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45069FC529D3A7C800D0DD14 /* WideMediaTileViewLayout.swift */; };
@@ -4152,7 +4153,6 @@
 		3497971E25DAA86100E99FA4 /* SendPaymentCompletionActionSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendPaymentCompletionActionSheet.swift; sourceTree = "<group>"; };
 		3497971F25DAA86100E99FA4 /* SendPaymentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendPaymentViewController.swift; sourceTree = "<group>"; };
 		3497972225DAAE3800E99FA4 /* SendPaymentHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendPaymentHelper.swift; sourceTree = "<group>"; };
-		3703386B2E8D90000005A862 /* SendCashuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendCashuViewController.swift; sourceTree = "<group>"; };
 		3498A0A524DC81E100CA492C /* OWSContactsManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSContactsManager.swift; sourceTree = "<group>"; };
 		3498AC8D2518E92B00B1F315 /* PaymentsHistoryViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentsHistoryViewController.swift; sourceTree = "<group>"; };
 		3498AC8E2518E92B00B1F315 /* PaymentsHistory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentsHistory.swift; sourceTree = "<group>"; };
@@ -4340,11 +4340,13 @@
 		34FB6A5425D2E17200E599B1 /* PaymentModelCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentModelCell.swift; sourceTree = "<group>"; };
 		34FC7EEB265834F30046707A /* AvatarBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvatarBuilder.swift; sourceTree = "<group>"; };
 		34FCCA03264AEDFE00A63EDE /* CustomColorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomColorViewController.swift; sourceTree = "<group>"; };
-		370338662E8D477A0005A862 /* CashuIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = src/CashuIntegration.swift; sourceTree = "<group>"; };
-		370338692E8D47D00005A862 /* CashuWalletViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift; sourceTree = "<group>"; };
+		370338662E8D477A0005A862 /* src/CashuIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = src/CashuIntegration.swift; sourceTree = "<group>"; };
+		370338692E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift; sourceTree = "<group>"; };
+		3703386B2E8D90000005A862 /* SendCashuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SendCashuViewController.swift; sourceTree = "<group>"; };
 		3703386D2E8D95000005A862 /* AddFundsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFundsViewController.swift; sourceTree = "<group>"; };
 		3703386F2E8DA0000005A862 /* ManageMintsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageMintsViewController.swift; sourceTree = "<group>"; };
 		370338712E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCashuRecoveryPhraseViewController.swift; sourceTree = "<group>"; };
+		37F5FC942E9017BB00144555 /* CVComponentCashuToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CVComponentCashuToken.swift; sourceTree = "<group>"; };
 		39B85AE8CD37B05A1B144605 /* Pods_SignalShareExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SignalShareExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		44B6CDDFDDD0811DBBC57CD1 /* Pods-SignalTests.profiling.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalTests.profiling.xcconfig"; path = "Target Support Files/Pods-SignalTests/Pods-SignalTests.profiling.xcconfig"; sourceTree = "<group>"; };
 		4503F1BB20470A5B00CEE724 /* classic-quiet.aifc */ = {isa = PBXFileReference; lastKnownFileType = file; path = "classic-quiet.aifc"; sourceTree = "<group>"; };
@@ -8222,6 +8224,7 @@
 				C14AEBDE2C1A482900FAA31D /* CVComponentArchivedPayment.swift */,
 				348815C1255341F200D4F4C4 /* CVComponentAudioAttachment.swift */,
 				347C3840252CE6C900F3D941 /* CVComponentBodyMedia.swift */,
+				37F5FC942E9017BB00144555 /* CVComponentCashuToken.swift */,
 				347C383C252CE6C900F3D941 /* CVComponentBodyText.swift */,
 				3426A3792563F0EA0036407F /* CVComponentBottomButtons.swift */,
 				04FAAD0D2E82EEA900E4AAC3 /* CVComponentBottomLabel.swift */,
@@ -11395,8 +11398,8 @@
 		D221A093169C9E5E00537ABF /* Signal */ = {
 			isa = PBXGroup;
 			children = (
-				370338692E8D47D00005A862 /* CashuWalletViewController.swift */,
-				370338662E8D477A0005A862 /* CashuIntegration.swift */,
+				370338692E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift */,
+				370338662E8D477A0005A862 /* src/CashuIntegration.swift */,
 				F94D12FD28BD0DD900B2C478 /* Accessibility */,
 				5045F44129E0DAA400058E5F /* AppLaunch */,
 				661AEE462C2088DF0046B1D8 /* Attachments */,
@@ -17035,6 +17038,7 @@
 				887CD47F247307D900FDD265 /* DeviceTransferService+Restore.swift in Sources */,
 				887CD4812473098D00FDD265 /* DeviceTransferService+State.swift in Sources */,
 				887CD47B247304B600FDD265 /* DeviceTransferService+URL.swift in Sources */,
+				37F5FC952E9017BB00144555 /* CVComponentCashuToken.swift in Sources */,
 				88C4E38024635337009C9B97 /* DeviceTransferService.swift in Sources */,
 				D900E6FF2DE143F9004D01A1 /* DisappearingMessagesCustomTimePickerViewController.swift in Sources */,
 				D900E6F82DE10499004D01A1 /* DisappearingMessagesTimerSettingsViewController.swift in Sources */,
@@ -17309,7 +17313,7 @@
 				88DF81A328E15D1600F8BA80 /* ProxySettingsViewController.swift in Sources */,
 				4539B5861F79348F007141FF /* PushRegistrationManager.swift in Sources */,
 				D9DCFDB02A3BC4A400C73C0B /* QRCodeGenerator.swift in Sources */,
-				370338672E8D477A0005A862 /* CashuIntegration.swift in Sources */,
+				370338672E8D477A0005A862 /* src/CashuIntegration.swift in Sources */,
 				D9BF53362D0814A000EC3DF0 /* QRCodeView.swift in Sources */,
 				C1AE7C5A2D7B4451007A618D /* QuickRestoreManager.swift in Sources */,
 				3470C8742554926200F5847C /* QuotedMessageView.swift in Sources */,
@@ -17420,7 +17424,7 @@
 				661602A428BEB94400C1932D /* StoryListDataSource.swift in Sources */,
 				884DB94F27DE67BB00C6A309 /* StoryPageViewController.swift in Sources */,
 				884DB95427DEB9E900C6A309 /* StoryPlaybackProgressView.swift in Sources */,
-				3703386A2E8D47D00005A862 /* CashuWalletViewController.swift in Sources */,
+				3703386A2E8D47D00005A862 /* src/ViewControllers/AppSettings/Payments/CashuWalletViewController.swift in Sources */,
 				3703386E2E8D95000005A862 /* AddFundsViewController.swift in Sources */,
 				370338702E8DA0000005A862 /* ManageMintsViewController.swift in Sources */,
 				370338722E8DA5000005A862 /* ViewCashuRecoveryPhraseViewController.swift in Sources */,

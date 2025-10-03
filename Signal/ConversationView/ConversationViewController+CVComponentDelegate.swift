@@ -583,6 +583,40 @@ extension ConversationViewController: CVComponentDelegate {
         navigationController?.pushViewController(paymentsDetailViewController, animated: true)
     }
 
+    public func didTapCashuToken(tokenString: String) {
+        AssertIsOnMainThread()
+
+        let alert = UIAlertController(
+            title: "Receive Cashu tokens",
+            message: "Do you want to receive these Cashu tokens?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Receive", style: .default) { _ in
+            Task {
+                do {
+                    try await CashuIntegration.shared.receiveTokens(tokenString: tokenString)
+                    await MainActor.run {
+                        let successAlert = UIAlertController(
+                            title: "Success",
+                            message: "Tokens received successfully!",
+                            preferredStyle: .alert
+                        )
+                        successAlert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(successAlert, animated: true)
+                    }
+                } catch {
+                    await MainActor.run {
+                        OWSActionSheets.showErrorAlert(message: "Failed to receive tokens: \(error.localizedDescription)")
+                    }
+                }
+            }
+        })
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
+    }
+
     public func didTapGroupInviteLink(url: URL) {
         AssertIsOnMainThread()
         owsAssertDebug(GroupManager.isPossibleGroupInviteLink(url))

@@ -132,6 +132,8 @@ public protocol CVComponentDelegate: AnyObject, AudioMessageViewDelegate {
 
     func didTapPayment(_ payment: PaymentsHistoryItem)
 
+    func didTapCashuToken(tokenString: String)
+
     func didTapGroupInviteLink(url: URL)
 
     func didTapProxyLink(url: URL)
